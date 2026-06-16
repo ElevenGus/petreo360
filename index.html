@@ -1155,17 +1155,7 @@ const DEMO_EMAIL = 'admin@demo.com';
 const DEMO_PW    = 'demo1234';
 const DEMO_USER  = { nombre: 'Administrador', rol: 'dueno' };
 
-function initApp() {
-  // Saltar setup y supabase en modo demo
-  G('setup-screen').style.display = 'none';
-  G('login-screen').style.display = 'flex';
-}
-// Ejecutar cuando el DOM esté listo
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', initApp);
-} else {
-  initApp();
-};
+// init se ejecuta al final del script;
 
 // ═══════════════════════════════════════
 //  SETUP
@@ -3762,5 +3752,15 @@ create policy "auth_all" on usuarios               for all using (auth.role() = 
   FIN DEL SQL
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 -->
+
+<script>
+// Init inline — se ejecuta después de que todo el JS principal cargó
+(function() {
+  var ss = document.getElementById('setup-screen');
+  var ls = document.getElementById('login-screen');
+  if (ss) ss.style.display = 'none';
+  if (ls) ls.style.display = 'flex';
+})();
+</script>
 </body>
 </html>
