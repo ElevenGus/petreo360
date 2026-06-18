@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Encuesta de Satisfaccion - PÉTREO360</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;background:#0f0f0f;color:#e0dcd6;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+  .card{background:#1a1a1a;border:1px solid #2a2a2a;padding:36px;max-width:520px;width:100%}
+  .logo-wrap{margin-bottom:20px}
+  .logo-img{height:36px;max-width:220px;object-fit:contain;display:block}
+  .logo-txt{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;font-size:18px;font-weight:700;color:#e8820c;letter-spacing:.02em}
+  .subtitle{font-size:12px;color:#666;margin-bottom:28px}
+  .info-box{background:#111;border:1px solid #2a2a2a;padding:14px;margin-bottom:28px}
+  .info-row{font-size:12px;color:#888;margin-bottom:4px}
+  .info-row strong{color:#e0dcd6}
+  h2{font-size:18px;font-weight:700;color:#e0dcd6;margin-bottom:6px}
+  .desc{font-size:13px;color:#888;margin-bottom:28px;line-height:1.5}
+  .pregunta{margin-bottom:24px}
+  .preg-label{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#888;margin-bottom:10px}
+  .stars{display:flex;gap:6px}
+  .star{font-size:36px;cursor:pointer;color:#2a2a2a;transition:color .15s;line-height:1;-webkit-tap-highlight-color:transparent;user-select:none}
+  .star.active{color:#e8820c}
+  .star.hover{color:#e8820c}
+  .star-label{font-size:11px;color:#666;margin-top:6px;min-height:16px}
+  textarea{width:100%;background:#111;border:1px solid #2a2a2a;color:#e0dcd6;padding:12px;font-size:13px;font-family:inherit;resize:vertical;min-height:90px;outline:none;transition:border-color .2s}
+  textarea:focus{border-color:#e8820c}
+  .btn{display:block;width:100%;padding:14px;background:#e8820c;color:#fff;border:none;font-size:15px;font-weight:700;cursor:pointer;letter-spacing:.04em;margin-top:28px;transition:opacity .2s}
+  .btn:hover{opacity:.88}
+  .btn:disabled{opacity:.4;cursor:not-allowed}
+  .gracias{text-align:center;padding:48px 20px}
+  .gracias-ico{font-size:64px;margin-bottom:16px}
+  .gracias h2{font-size:24px;color:#e8820c;margin-bottom:10px}
+  .gracias p{font-size:14px;color:#888;line-height:1.6}
+  .powered{text-align:center;font-size:10px;color:#444;margin-top:28px;letter-spacing:.04em}
+  .powered strong{color:#777;font-weight:600;letter-spacing:.04em}
+  .error-msg{background:#2a1010;border:1px solid #5a2020;padding:12px;font-size:13px;color:#e06060;margin-bottom:16px;display:none}
+</style>
+</head>
+<body>
+<div class="card" id="card-form">
+  <div class="logo-wrap">
+    <img id="logo-img" src="logo_fondo_blanco.png" alt="Logo" class="logo-img" onerror="this.style.display='none';document.getElementById('logo-txt').style.display='block'">
+    <div class="logo-txt" id="logo-txt" style="display:none">PÉTREO360</div>
+  </div>
+  <div class="subtitle" id="subtitle-empresa">Encuesta de satisfaccion</div>
+  <div class="info-box" id="info-box">
+    <div class="info-row">Pedido: <strong id="info-folio">-</strong></div>
+    <div class="info-row">Cliente: <strong id="info-cli">-</strong></div>
+  </div>
+  <h2>Califica tu experiencia</h2>
+  <p class="desc">Tu opinion es importante para nosotros. Solo te tomara un minuto.</p>
+  <div class="error-msg" id="error-msg">Por favor califica todas las categorias antes de enviar.</div>
+
+  <div class="pregunta">
+    <div class="preg-label">Calidad del material</div>
+    <div class="stars" id="stars-calidad"></div>
+    <div class="star-label" id="lbl-calidad"></div>
+  </div>
+  <div class="pregunta">
+    <div class="preg-label">Tiempo de entrega</div>
+    <div class="stars" id="stars-tiempo"></div>
+    <div class="star-label" id="lbl-tiempo"></div>
+  </div>
+  <div class="pregunta">
+    <div class="preg-label">Servicio del chofer</div>
+    <div class="stars" id="stars-servicio"></div>
+    <div class="star-label" id="lbl-servicio"></div>
+  </div>
+  <div class="pregunta">
+    <div class="preg-label">Atencion al cliente</div>
+    <div class="stars" id="stars-atencion"></div>
+    <div class="star-label" id="lbl-atencion"></div>
+  </div>
+
+  <div class="pregunta">
+    <div class="preg-label">Comentarios (opcional)</div>
+    <textarea id="comentario" placeholder="Cuentanos tu experiencia, sugerencias o cualquier detalle..."></textarea>
+  </div>
+
+  <button class="btn" id="btn-enviar" onclick="enviar()">Enviar calificacion</button>
+  <div class="powered">Powered by <strong>PÉTREO360</strong></div>
+</div>
+
+<div class="card gracias" id="card-gracias" style="display:none">
+  <div class="gracias-ico">&#11088;</div>
+  <h2>Gracias por tu opinion</h2>
+  <p>Tu retroalimentacion nos ayuda a mejorar nuestro servicio.<br>Esperamos verte pronto.</p>
+  <div class="powered" style="margin-top:40px">Powered by <strong>PÉTREO360</strong></div>
+</div>
+
+<script>
+var LABELS = ['','Muy malo','Malo','Regular','Bueno','Excelente'];
+var vals = {calidad:0, tiempo:0, servicio:0, atencion:0};
+
+function getParam(name){
+  var url = new URL(window.location.href);
+  return url.searchParams.get(name) || '';
+}
+
+function initStars(key){
+  var container = document.getElementById('stars-' + key);
+  for(var i = 1; i <= 5; i++){
+    var span = document.createElement('span');
+    span.className = 'star';
+    span.innerHTML = '&#9733;';
+    span.dataset.val = i;
+    span.dataset.key = key;
+    span.addEventListener('click', onClick);
+    span.addEventListener('mouseenter', onHover);
+    span.addEventListener('mouseleave', onLeave);
+    container.appendChild(span);
+  }
+}
+
+function onClick(e){
+  var key = e.target.dataset.key;
+  var val = parseInt(e.target.dataset.val);
+  vals[key] = val;
+  updateStars(key, val, false);
+  document.getElementById('lbl-' + key).textContent = LABELS[val];
+}
+function onHover(e){
+  var key = e.target.dataset.key;
+  var val = parseInt(e.target.dataset.val);
+  updateStars(key, val, true);
+}
+function onLeave(e){
+  var key = e.target.dataset.key;
+  updateStars(key, vals[key], false);
+}
+function updateStars(key, val, hover){
+  var stars = document.querySelectorAll('#stars-' + key + ' .star');
+  stars.forEach(function(s){
+    var sv = parseInt(s.dataset.val);
+    s.classList.toggle('active', !hover && sv <= val);
+    s.classList.toggle('hover', hover && sv <= val);
+  });
+}
+
+function enviar(){
+  var keys = ['calidad','tiempo','servicio','atencion'];
+  for(var i = 0; i < keys.length; i++){
+    if(!vals[keys[i]]){
+      document.getElementById('error-msg').style.display = 'block';
+      return;
+    }
+  }
+  document.getElementById('error-msg').style.display = 'none';
+  document.getElementById('btn-enviar').disabled = true;
+  document.getElementById('btn-enviar').textContent = 'Enviando...';
+
+  var pid    = getParam('pid');
+  var folio  = getParam('folio');
+  var cli    = getParam('cli');
+  var fecha  = new Date().toISOString().split('T')[0];
+  var comentario = document.getElementById('comentario').value.trim();
+
+  var respuesta = {
+    id: 'e' + Date.now(),
+    pedido_id: pid,
+    folio: folio,
+    cliente: cli,
+    fecha: fecha,
+    calidad: vals.calidad,
+    tiempo: vals.tiempo,
+    servicio: vals.servicio,
+    atencion: vals.atencion,
+    comentario: comentario,
+    respondida: true
+  };
+
+  // Guardar en localStorage para que petreo360 lo lea
+  try{
+    var guardadas = JSON.parse(localStorage.getItem('petreo_encuestas') || '[]');
+    // Evitar duplicados del mismo pedido
+    guardadas = guardadas.filter(function(e){ return e.pedido_id !== pid; });
+    guardadas.push(respuesta);
+    localStorage.setItem('petreo_encuestas', JSON.stringify(guardadas));
+  }catch(er){}
+
+  setTimeout(function(){
+    document.getElementById('card-form').style.display = 'none';
+    document.getElementById('card-gracias').style.display = 'block';
+  }, 600);
+}
+
+window.onload = function(){
+  var folio = getParam('folio');
+  var cli   = getParam('cli');
+  var pid   = getParam('pid');
+
+  if(folio) document.getElementById('info-folio').textContent = folio;
+  if(cli)   document.getElementById('info-cli').textContent = cli;
+  if(!folio && !cli) document.getElementById('info-box').style.display = 'none';
+
+  // Cargar identidad de la empresa configurada en el sistema principal
+  // (mismo dominio = mismo localStorage entre index.html y encuesta.html)
+  try{
+    var cfg = JSON.parse(localStorage.getItem('petreo_cfg_empresa') || 'null');
+    if(cfg){
+      if(cfg.nombre){
+        document.getElementById('logo-txt').textContent = cfg.nombre;
+        document.getElementById('subtitle-empresa').textContent = 'Encuesta de satisfaccion — ' + cfg.nombre;
+        document.title = 'Encuesta - ' + cfg.nombre;
+      }
+      if(cfg.logo_url){
+        document.getElementById('logo-img').src = cfg.logo_url;
+      }
+    }
+  }catch(er){}
+
+  // Si ya respondio este pedido, mostrar gracias directamente
+  if(pid){
+    try{
+      var guardadas = JSON.parse(localStorage.getItem('petreo_encuestas') || '[]');
+      if(guardadas.find(function(e){ return e.pedido_id === pid; })){
+        document.getElementById('card-form').style.display = 'none';
+        document.getElementById('card-gracias').style.display = 'block';
+        return;
+      }
+    }catch(er){}
+  }
+
+  ['calidad','tiempo','servicio','atencion'].forEach(initStars);
+};
+</script>
+</body>
+</html>
