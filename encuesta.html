@@ -171,19 +171,27 @@ function enviar(){
     respondida: true
   };
 
-  // Guardar en localStorage para que petreo360 lo lea
-  try{
-    var guardadas = JSON.parse(localStorage.getItem('petreo_encuestas') || '[]');
-    // Evitar duplicados del mismo pedido
-    guardadas = guardadas.filter(function(e){ return e.pedido_id !== pid; });
-    guardadas.push(respuesta);
-    localStorage.setItem('petreo_encuestas', JSON.stringify(guardadas));
-  }catch(er){}
+  var SB_URL = 'https://swfqbdshxxazjamfzlmt.supabase.co';
+  var SB_KEY = 'sb_publishable_C_6Hc8sQjDjv65pJfgtjww_k9AKUPzW';
 
-  setTimeout(function(){
+  // Guardar en Supabase
+  fetch(SB_URL + '/rest/v1/encuestas', {
+    method: 'POST',
+    headers: {
+      'apikey': SB_KEY,
+      'Authorization': 'Bearer ' + SB_KEY,
+      'Content-Type': 'application/json',
+      'Prefer': 'return=representation'
+    },
+    body: JSON.stringify(respuesta)
+  }).then(function(){
     document.getElementById('card-form').style.display = 'none';
     document.getElementById('card-gracias').style.display = 'block';
-  }, 600);
+  }).catch(function(){
+    // Si falla Supabase, igual mostramos gracias
+    document.getElementById('card-form').style.display = 'none';
+    document.getElementById('card-gracias').style.display = 'block';
+  });
 }
 
 window.onload = function(){
@@ -195,32 +203,34 @@ window.onload = function(){
   if(cli)   document.getElementById('info-cli').textContent = cli;
   if(!folio && !cli) document.getElementById('info-box').style.display = 'none';
 
-  // Cargar identidad de la empresa configurada en el sistema principal
-  // (mismo dominio = mismo localStorage entre index.html y encuesta.html)
-  try{
-    var cfg = JSON.parse(localStorage.getItem('petreo_cfg_empresa') || 'null');
-    if(cfg){
-      if(cfg.nombre){
-        document.getElementById('logo-txt').textContent = cfg.nombre;
-        document.getElementById('subtitle-empresa').textContent = 'Encuesta de satisfaccion — ' + cfg.nombre;
-        document.title = 'Encuesta - ' + cfg.nombre;
+  // Cargar identidad desde Supabase
+  var SB_URL = 'https://swfqbdshxxazjamfzlmt.supabase.co';
+  var SB_KEY = 'sb_publishable_C_6Hc8sQjDjv65pJfgtjww_k9AKUPzW';
+  fetch(SB_URL + '/rest/v1/configuracion?id=eq.cfg&select=nombre_empresa,logo_url', {
+    headers: {'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY}
+  }).then(function(r){return r.json();}).then(function(data){
+    if(data&&data[0]){
+      var cfg=data[0];
+      if(cfg.nombre_empresa){
+        document.getElementById('logo-txt').textContent = cfg.nombre_empresa;
+        document.getElementById('subtitle-empresa').textContent = 'Encuesta de satisfacción — ' + cfg.nombre_empresa;
+        document.title = 'Encuesta - ' + cfg.nombre_empresa;
       }
-      if(cfg.logo_url){
-        document.getElementById('logo-img').src = cfg.logo_url;
-      }
+      if(cfg.logo_url) document.getElementById('logo-img').src = cfg.logo_url;
     }
-  }catch(er){}
+  }).catch(function(){});
 
-  // Si ya respondio este pedido, mostrar gracias directamente
+  // Verificar si ya respondió este pedido
   if(pid){
-    try{
-      var guardadas = JSON.parse(localStorage.getItem('petreo_encuestas') || '[]');
-      if(guardadas.find(function(e){ return e.pedido_id === pid; })){
+    fetch(SB_URL + '/rest/v1/encuestas?pedido_id=eq.' + encodeURIComponent(pid) + '&select=id', {
+      headers: {'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY}
+    }).then(function(r){return r.json();}).then(function(data){
+      if(data&&data.length>0){
         document.getElementById('card-form').style.display = 'none';
         document.getElementById('card-gracias').style.display = 'block';
-        return;
       }
-    }catch(er){}
+    }).catch(function(){});
+  }
   }
 
   ['calidad','tiempo','servicio','atencion'].forEach(initStars);
